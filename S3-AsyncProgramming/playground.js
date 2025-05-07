@@ -2,59 +2,38 @@ const asyncFunction1 = (cb) => {
     return new Promise((resolve, reject) => {
         setTimeout(() => {
             console.log("Async Function 1");            
-            resolve();
+            reject({data: "Response 1"});
         }, 1000);
-    });
-    
-    
+    });    
 };
 
-const asyncFunction2 = (cb) => {
-    return new Promise((resolve, reject) => {
 
-        setTimeout(() => {
-            console.log("Async Function 2");
-            resolve();
-        }, 1000);
+// async await
+
+const sum = async (a , b) => {
+    return new Promise( (resolve, reject) => {
+        resolve(a+b);
     })
-};
+}
 
-const asyncFunction3 = (cb) => {
-    return new Promise((resolve, reject) => {
-        setTimeout(() => {
-            console.log("Async Function 3");
-            resolve();
-        }, 1000);
-    })
-};
 
-const main = async () => {
-    console.log("Step 1");
+// const main = async () => {
+//     const resp = await sum(5, 7);
     
-    //Promise Chaining
-    asyncFunction1()
-        .then(asyncFunction2)
-        .then(asyncFunction3)
-        .then(() => {
-            console.log("All Done");  
-        })
+//     console.log(resp);
+//     console.log("Reached End");
+// }
 
 
-    
-    // asyncFunction1()
-    //     .then(() => {
-    //         asyncFunction2()
-    //             .then(() => {
-    //                 asyncFunction3()
-    //                     .then(() => {
-    //                         console.log("All Done");  
-    //                     })
-    //             })
-    //         })
+const main =  async () => {
+    let resp;
+    try {
+        resp = await asyncFunction1();
+    } catch (e) {
+        console.log(e);
+    }
+    console.log(resp);
+}
 
-    
-    
-    console.log("Step 2");
-};
 
-main();
+main()
