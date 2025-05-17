@@ -1,1 +1,14 @@
+**/.env
 **/node_modules
+**/.DS_Store
+**/.vscode
+**/.idea
+*(/.cache
+**/.next
+**/coverage
+**/dist
+**/build
+**/out
+**/public
+**/lib
+**/tmp
