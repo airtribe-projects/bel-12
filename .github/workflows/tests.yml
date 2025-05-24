@@ -1,0 +1,66 @@
+name: Run Unit Tests and Report Coverage
+
+on:
+  pull_request:
+    branches: [ main ]
+
+permissions:
+  pull-requests: write
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Use Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18.x'
+    
+    - name: Navigate to target directory
+      run: cd ./S6-UnitTesting/7-ContinuousIntegration
+
+        
+    - name: Install dependencies
+      working-directory: ./S6-UnitTesting/7-ContinuousIntegration
+      run: |
+        if [ -f package-lock.json ]; then
+          npm ci
+        else
+          npm install
+        fi
+      
+    - name: Run tests
+      id: test
+      working-directory: ./S6-UnitTesting/7-ContinuousIntegration
+      run: |
+        echo "test_output<<EOF" >> $GITHUB_OUTPUT
+        npm test 2>&1 | tee test_output.log
+        echo "EOF" >> $GITHUB_OUTPUT
+      continue-on-error: true
+
+    - name: Comment PR
+      uses: actions/github-script@v6
+      if: always()  
+      with:
+        github-token: ${{secrets.GITHUB_TOKEN}}
+        script: |
+          const fs = require('fs');
+          const testOutput = fs.readFileSync('./S6-UnitTesting/7-ContinuousIntegration/test_output.log', 'utf8');
+          
+          const comment = `## Test Results
+
+          \`\`\`
+          ${testOutput}
+          \`\`\`
+          `;
+          
+          github.rest.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: comment
+          })
+          
