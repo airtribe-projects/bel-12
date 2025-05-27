@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Blog System - SQL Injection Demo</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+            background-color: #fff8e1;
+            color: #5d4037;
+            transition: background 0.5s ease;
+        }
+        .warning {
+            background-color: #ffcc80;
+            color: #bf360c;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            text-align: center;
+            font-weight: bold;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        .section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #ffb74d;
+            border-radius: 8px;
+            background: #fff3e0;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            transform: translateY(0);
+            transition: transform 0.3s ease-in-out;
+        }
+        .section:hover {
+            transform: translateY(-5px);
+        }
+        .input-group {
+            margin-bottom: 15px;
+        }
+        .input-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        .input-group input, .input-group textarea {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ff9800;
+            border-radius: 4px;
+            background: #fff8e1;
+        }
+        button {
+            background-color: #ffa726;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background 0.3s;
+        }
+        button:hover {
+            background-color: #fb8c00;
+        }
+        pre {
+            background-color: #ffe0b2;
+            padding: 15px;
+            border-radius: 4px;
+            overflow-x: auto;
+        }
+        .attack-example {
+            color: #d84315;
+            font-family: monospace;
+            font-weight: bold;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        .fade-in {
+            animation: fadeIn 1s ease-in-out;
+        }
+    </style>
+</head>
+<body>
+    <div class="warning fade-in">
+        ⚠️ This is a demonstration of SQL Injection vulnerabilities. DO NOT use this code in production!
+    </div>
+
+    <!-- Login Form -->
+    <div class="section fade-in">
+        <h2>Login</h2>
+        <p>Try this attack: <span class="attack-example">admin' OR '1'='1</span></p>
+        
+        <div class="input-group">
+            <label for="username">Username:</label>
+            <input type="text" id="username" placeholder="admin">
+        </div>
+        <div class="input-group">
+            <label for="password">Password:</label>
+            <input type="password" id="password" placeholder="admin123">
+        </div>
+        <button onclick="login()">Login</button>
+        <pre id="loginResult"></pre>
+    </div>
+
+    <!-- Add Post Form -->
+    <div class="section fade-in">
+        <h2>Add Post</h2>
+        <p>Try this attack: <span class="attack-example">test'); DROP TABLE users; --</span></p>
+        
+        <div class="input-group">
+            <label for="postTitle">Post Title:</label>
+            <input type="text" id="postTitle" placeholder="Enter title...">
+        </div>
+        <div class="input-group">
+            <label for="postContent">Post Content:</label>
+            <textarea id="postContent" rows="4" placeholder="Enter content..."></textarea>
+        </div>
+        <button onclick="addPost()">Add Post</button>
+        <pre id="postResult"></pre>
+    </div>
+
+    <!-- Profile View -->
+    <div class="section fade-in">
+        <h2>View Profile</h2>
+        <p>Try this attack: <span class="attack-example">admin' UNION SELECT credit_card, api_key FROM users WHERE '1'='1</span></p>
+        
+        <div class="input-group">
+            <label for="profileUsername">Username:</label>
+            <input type="text" id="profileUsername" placeholder="Enter username...">
+        </div>
+        <button onclick="viewProfile()">View Profile</button>
+        <pre id="profileResult"></pre>
+    </div>
+
+    <script>
+        function applyBackgroundAnimation() {
+            document.body.style.transition = "background 1s ease-in-out";
+            setInterval(() => {
+                document.body.style.backgroundColor = 
+                    document.body.style.backgroundColor === '#fff8e1' ? '#ffecb3' : '#fff8e1';
+            }, 2000);
+        }
+
+        async function login() {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            
+            const response = await fetch('/api/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, password })
+            });
+            
+            const result = await response.json();
+            document.getElementById('loginResult').textContent = 
+                JSON.stringify(result, null, 2);
+        }
+
+        async function addPost() {
+            const title = document.getElementById('postTitle').value;
+            const content = document.getElementById('postContent').value;
+            
+            const response = await fetch('/api/posts', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ title, content })
+            });
+            
+            const result = await response.json();
+            document.getElementById('postResult').textContent = 
+                JSON.stringify(result, null, 2);
+        }
+
+        async function viewProfile() {
+            const username = document.getElementById('profileUsername').value;
+            const response = await fetch(`/api/users/profile?username=${encodeURIComponent(username)}`);
+            const result = await response.json();
+            document.getElementById('profileResult').textContent = 
+                JSON.stringify(result, null, 2);
+        }
+        
+        window.onload = applyBackgroundAnimation;
+    </script>
+</body>
+</html>

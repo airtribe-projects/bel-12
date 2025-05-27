@@ -1,0 +1,7 @@
+{
+  "dependencies": {
+    "express": "^5.1.0",
+    "helmet": "^8.1.0",
+    "rate-limiter-flexible": "^7.1.1"
+  }
+}
