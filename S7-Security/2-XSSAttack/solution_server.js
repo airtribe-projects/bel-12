@@ -12,7 +12,7 @@ const purify = DOMPurify(window);
 const helmet = require('helmet');
 const escape = require('escape-html');
 
-Set-Cookie: jwt=eyJhbGciOi...; HttpOnly; Secure;
+// Set-Cookie: jwt=eyJhbGciOi...; HttpOnly; Secure;
 
 
 ```
