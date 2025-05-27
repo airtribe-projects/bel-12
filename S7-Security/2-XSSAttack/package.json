@@ -1,0 +1,21 @@
+{
+  "name": "3_xssattacks",
+  "version": "1.0.0",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "dompurify": "^3.2.3",
+    "escape-html": "^1.0.3",
+    "express": "^4.21.2",
+    "helmet": "^8.0.0",
+    "jsdom": "^26.0.0",
+    "path": "^0.12.7",
+    "sqlite3": "^5.1.7"
+  }
+}
