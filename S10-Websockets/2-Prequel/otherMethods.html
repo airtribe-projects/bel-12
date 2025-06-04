@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Real-time Stock Updates</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .container {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+        .panel {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 20px;
+        }
+        .stock-price {
+            background: #f5f5f5;
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 4px;
+            transition: background-color 0.3s;
+        }
+        .stock-price.updated {
+            background: #e3f2fd;
+        }
+        .method-title {
+            font-size: 1.2em;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+        .status {
+            color: #666;
+            font-size: 0.9em;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Real-time Stock Updates</h1>
+    <div class="container">
+        <!-- Regular Polling Panel -->
+        <div class="panel">
+            <div class="method-title">Regular Polling</div>
+            <div id="polling-data"></div>
+            <div class="status" id="polling-status"></div>
+        </div>
+
+        <!-- Long Polling Panel -->
+        <div class="panel">
+            <div class="method-title">Long Polling</div>
+            <div id="long-polling-data"></div>
+            <div class="status" id="long-polling-status"></div>
+        </div>
+
+        <!-- Server-Sent Events Panel -->
+        <div class="panel">
+            <div class="method-title">Server-Sent Events</div>
+            <div id="sse-data"></div>
+            <div class="status" id="sse-status"></div>
+        </div>
+    </div>
+
+    <script>
+        // Utility function to update UI
+        function updateStockDisplay(data, containerId, previousData = {}) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = '';
+            
+            Object.entries(data).forEach(([symbol, price]) => {
+                const div = document.createElement('div');
+                div.className = 'stock-price';
+                if (previousData[symbol] !== price) {
+                    div.classList.add('updated');
+                    setTimeout(() => div.classList.remove('updated'), 1000);
+                }
+                div.textContent = `${symbol}: $${price}`;
+                container.appendChild(div);
+            });
+            
+            return data;
+        }
+
+        // 1. Regular Polling Implementation
+        let pollingPreviousData = {};
+        function startPolling() {
+            const pollData = async () => {
+                try {
+                    const response = await fetch('/api/stocks/polling');
+                    const data = await response.json();
+                    pollingPreviousData = updateStockDisplay(data, 'polling-data', pollingPreviousData);
+                    document.getElementById('polling-status').textContent = 'Last update: ' + new Date().toLocaleTimeString();
+                } catch (error) {
+                    document.getElementById('polling-status').textContent = 'Error: ' + error.message;
+                }
+            };
+
+            // Poll every 3 seconds
+            pollData();
+            setInterval(pollData, 3000);
+        }
+
+        // 2. Long Polling Implementation
+        let longPollingPreviousData = {};
+        async function startLongPolling() {
+            const poll = async () => {
+                try {
+                    const response = await fetch('/api/stocks/long-polling');
+                    const data = await response.json();
+                    longPollingPreviousData = updateStockDisplay(data, 'long-polling-data', longPollingPreviousData);
+                    document.getElementById('long-polling-status').textContent = 'Last update: ' + new Date().toLocaleTimeString();
+                    poll(); // Continue polling
+                } catch (error) {
+                    document.getElementById('long-polling-status').textContent = 'Error: ' + error.message;
+                    setTimeout(poll, 5000); // Retry after 5 seconds on error
+                }
+            };
+            poll();
+        }
+
+        // 3. Server-Sent Events Implementation
+        let ssePreviousData = {};
+        function startSSE() {
+            const eventSource = new EventSource('/api/stocks/sse');
+            
+            eventSource.onmessage = (event) => {
+                const data = JSON.parse(event.data);
+                ssePreviousData = updateStockDisplay(data, 'sse-data', ssePreviousData);
+                document.getElementById('sse-status').textContent = 'Last update: ' + new Date().toLocaleTimeString();
+            };
+
+            eventSource.onerror = (error) => {
+                document.getElementById('sse-status').textContent = 'Connection error. Reconnecting...';
+            };
+        }
+
+        // Start all implementations
+        startPolling();
+        startLongPolling();
+        startSSE();
+    </script>
+</body>
+</html>

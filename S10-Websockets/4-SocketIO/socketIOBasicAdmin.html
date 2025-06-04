@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Admin Panel - Live Cricket Score</title>
+        <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    </head>
+    <body>
+        <h1>Admin Panel</h1>
+        <input type="number" id="runsInput" placeholder="Runs" />
+        <input type="number" id="wicketsInput" placeholder="Wickets" />
+        <input type="number" id="oversInput" placeholder="Overs" />
+        <button onclick="updateScore()">Update Score</button>
+
+        <script>
+            const socket = io('http://127.0.0.1:3000')
+            function updateScore() {
+                const newScore = {
+                    runs:
+                        parseInt(document.getElementById('runsInput').value) ||
+                        0,
+                    wickets:
+                        parseInt(
+                            document.getElementById('wicketsInput').value
+                        ) || 0,
+                    overs:
+                        parseFloat(
+                            document.getElementById('oversInput').value
+                        ) || 0,
+                }
+                socket.emit('update score', newScore)
+            }
+        </script>
+    </body>
+</html> 

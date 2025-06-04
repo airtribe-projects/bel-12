@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Live Cricket Score</title>
+        <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    </head>
+    <body>
+        <h1>Live Cricket Score</h1>
+        <div id="score">
+            Runs: <span id="runs">0</span><br />
+            Wickets: <span id="wickets">0</span><br />
+            Overs: <span id="overs">0</span>
+        </div>
+
+        <script>
+            const socket = io('http://localhost:3000')
+            socket.on('score update', score => {
+                document.getElementById('runs').textContent = score.runs
+                document.getElementById('wickets').textContent = score.wickets
+                document.getElementById('overs').textContent = score.overs
+            })
+        </script>
+    </body>
+</html> 

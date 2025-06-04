@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chatroom</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(to bottom, #4facfe, #00f2fe);
+            color: #fff;
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .container {
+            width: 90%;
+            max-width: 400px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 20px;
+            border-radius: 10px;
+        }
+        .input {
+            width: 90%;
+            padding: 10px;
+            margin: 10px 0;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        .button {
+            background: #0078ff;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            font-size: 16px;
+            color: #fff;
+            cursor: pointer;
+            transition: background 0.3s;
+            display: block;
+        }
+        .button:hover {
+            background: #005fcb;
+        }
+        .chat {
+            margin-top: 20px;
+            text-align: left;
+            color: #fff;
+        }
+        .messages {
+            height: 200px;
+            overflow-y: auto;
+            background: #333;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        .message {
+            margin-bottom: 10px;
+        }
+        .message.gray {
+            color: #888;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div id="login-section">
+            <input type="text" id="username" class="input" placeholder="Enter your username">
+            <input type="password" id="password" class="input" placeholder="Enter your password">
+            <button id="login-button" class="button">Login</button>
+        </div>
+
+        <div id="chat-section" style="display: none;">
+            <h2>Join a Chatroom</h2>
+            <select id="room-select" class="input">
+                <option value="room1">Room 1</option>
+                <option value="room2">Room 2</option>
+                <option value="room3">Room 3</option>
+                <option value="room4">Room 4</option>
+            </select>
+            <button id="join-room-button" class="button">Join Room</button>
+
+            <div id="chat-container" style="display: none;">
+                <h2>Chatroom</h2>
+                <div id="messages" class="messages"></div>
+                <input type="text" id="chat-input" class="input" placeholder="Type a message">
+                <button id="send-button" class="button">Send</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+    <script>
+        const loginSection = document.getElementById('login-section');
+        const chatSection = document.getElementById('chat-section');
+        const chatContainer = document.getElementById('chat-container');
+        const loginButton = document.getElementById('login-button');
+        const joinRoomButton = document.getElementById('join-room-button');
+        const sendButton = document.getElementById('send-button');
+        const usernameInput = document.getElementById('username');
+        const passwordInput = document.getElementById('password');
+        const chatInput = document.getElementById('chat-input');
+        const messagesDiv = document.getElementById('messages');
+        const roomSelect = document.getElementById('room-select');
+
+        let socket;
+
+        loginButton.addEventListener('click', async () => {
+            const username = usernameInput.value;
+            const password = passwordInput.value;
+
+            try {
+                const response = await fetch('http://localhost:3000/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password }),
+                });
+
+                if (!response.ok) {
+                    throw new Error('Invalid credentials');
+                }
+
+                const data = await response.json();
+                socket = io('http://localhost:3000', { auth: { token: data.token } });
+
+                socket.on('message', (msg) => {
+                    const messageElement = document.createElement('div');
+                    messageElement.classList.add('message');
+                    if (msg.gray) messageElement.classList.add('gray');
+                    messageElement.innerHTML = `<strong>${msg.username}:</strong> ${msg.message}`;
+                    messagesDiv.appendChild(messageElement);
+                    messagesDiv.scrollTop = messagesDiv.scrollHeight;
+                });
+
+                socket.on('room-messages', (messages) => {
+                    messagesDiv.innerHTML = '';
+                    messages.forEach((msg) => {
+                        const messageElement = document.createElement('div');
+                        messageElement.classList.add('message');
+                        if (msg.gray) messageElement.classList.add('gray');
+                        messageElement.innerHTML = `<strong>${msg.username}:</strong> ${msg.message}`;
+                        messagesDiv.appendChild(messageElement);
+                    });
+                    messagesDiv.scrollTop = messagesDiv.scrollHeight;
+                });
+
+                chatSection.style.display = 'block';
+                loginSection.style.display = 'none';
+            } catch (error) {
+                alert('Login failed. Please try again.');
+                console.error(error);
+            }
+        });
+
+        joinRoomButton.addEventListener('click', () => {
+            const room = roomSelect.value;
+            if (!socket) return;
+
+            socket.emit('join-room', room);
+
+            socket.on('room-messages', (messages) => {
+                messagesDiv.innerHTML = '';
+                messages.forEach((msg) => {
+                    const messageElement = document.createElement('div');
+                    messageElement.classList.add('message');
+                    if (msg.gray) messageElement.classList.add('gray');
+                    messageElement.innerHTML = `<strong>${msg.username}:</strong> ${msg.message}`;
+                    messagesDiv.appendChild(messageElement);
+                });
+                messagesDiv.scrollTop = messagesDiv.scrollHeight;
+            });
+
+            chatContainer.style.display = 'block';
+        });
+
+        sendButton.addEventListener('click', () => {
+            const message = chatInput.value;
+            if (socket && message) {
+                socket.emit('message', message);
+                chatInput.value = '';
+            }
+        });
+    </script>
+</body>
+</html>
