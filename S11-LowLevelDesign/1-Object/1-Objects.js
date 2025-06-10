@@ -100,8 +100,8 @@ camary.drive(100);
 swift.start();
 swift.drive(50);
 
-console.log(camary.#ignite());
-console.log(camary.#model);
+// console.log(camary.#ignite());
+// console.log(camary.#model);
 
 
 
