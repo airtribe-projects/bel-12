@@ -23,7 +23,7 @@ const processOrderKiss = (order) => {
         return;
     }
 
-    processOrder(order.getItems());
+    processOrderItems(order.getItems());
     order.confirm();
 }
 

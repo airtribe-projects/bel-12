@@ -45,6 +45,8 @@ class PaymentService {
     }
 }
 
+
+// Business logic
 const creditCardPayment = new CreditCardPayment();
 const freePayment = new FreePayment();
 
